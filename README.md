@@ -7,7 +7,7 @@
 ---
 
 ## Team Name
-Kawyashree Senthilkumar (Solo participant)
+Binary Boss 
 
 ---
 
