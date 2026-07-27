@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PlateWise - Smart Restaurant Management</title>
+<style>
+  :root{
+    --terracotta:#c9603a;
+    --cream:#faf3e9;
+    --charcoal:#2b2320;
+    --green:#4d7a56;
+    --gray:#8a8178;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Segoe UI', Arial, sans-serif;
+    background:var(--cream);
+    color:var(--charcoal);
+  }
+  .hidden{display:none !important;}
+  header{
+    background:var(--charcoal);
+    color:white;
+    padding:16px 24px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  header h1{font-size:20px; letter-spacing:1px;}
+  header h1 span{color:var(--terracotta);}
+  .nav-btns button{
+    background:none; border:1px solid #666; color:white;
+    padding:8px 14px; margin-left:8px; border-radius:6px; cursor:pointer;
+  }
+  .nav-btns button:hover{background:var(--terracotta); border-color:var(--terracotta);}
+  .container{max-width:1000px; margin:0 auto; padding:24px;}
+
+  /* LOGIN */
+  .login-box{
+    max-width:380px; margin:80px auto; background:white; padding:32px;
+    border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,0.08); text-align:center;
+  }
+  .login-box h2{margin-bottom:6px;}
+  .login-box p{color:var(--gray); margin-bottom:20px; font-size:14px;}
+  .login-box input{
+    width:100%; padding:12px; margin-bottom:12px; border:1px solid #ddd; border-radius:8px; font-size:14px;
+  }
+  .login-box button{
+    width:100%; padding:12px; background:var(--terracotta); color:white; border:none;
+    border-radius:8px; font-weight:bold; cursor:pointer; margin-top:6px;
+  }
+  .login-box .staff-link{
+    display:block; margin-top:16px; color:var(--green); font-size:13px; cursor:pointer; text-decoration:underline;
+  }
+
+  /* MENU */
+  .category-title{margin:24px 0 12px; font-size:18px; border-bottom:2px solid var(--terracotta); padding-bottom:6px;}
+  .menu-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:16px;}
+  .item-card{
+    background:white; border-radius:12px; padding:16px; box-shadow:0 2px 10px rgba(0,0,0,0.05);
+    position:relative; transition:transform .15s ease;
+  }
+  .item-card.sold-out{opacity:0.5;}
+  .item-card:hover{transform:translateY(-3px);}
+  .item-img{
+    height:100px; border-radius:8px; background:linear-gradient(135deg,#e8d5c4,#d9b899);
+    display:flex; align-items:center; justify-content:center; font-size:32px; margin-bottom:10px;
+  }
+  .item-name{font-weight:bold; font-size:15px;}
+  .item-desc{font-size:12px; color:var(--gray); margin:4px 0 8px; min-height:30px;}
+  .item-price{font-weight:bold; color:var(--terracotta);}
+  .badge{
+    position:absolute; top:10px; right:10px; font-size:11px; padding:3px 8px; border-radius:20px;
+    font-weight:bold;
+  }
+  .badge.available{background:#e3f2e5; color:var(--green);}
+  .badge.soldout{background:#fde3e0; color:#b3391c;}
+  .add-btn{
+    margin-top:8px; width:100%; padding:8px; border:none; border-radius:6px;
+    background:var(--charcoal); color:white; cursor:pointer; font-size:13px;
+  }
+  .add-btn:disabled{background:#ccc; cursor:not-allowed;}
+
+  /* CART */
+  .cart-panel{
+    position:fixed; right:20px; bottom:20px; background:white; border-radius:12px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.15); padding:16px; width:280px; max-height:60vh; overflow-y:auto;
+  }
+  .cart-panel h3{margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;}
+  .cart-item{display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;}
+  .cart-total{border-top:1px solid #eee; margin-top:10px; padding-top:10px; font-weight:bold; display:flex; justify-content:space-between;}
+  .checkout-btn{
+    width:100%; margin-top:12px; padding:10px; background:var(--green); color:white; border:none;
+    border-radius:8px; cursor:pointer; font-weight:bold;
+  }
+  .empty-cart{font-size:13px; color:var(--gray);}
+
+  /* AI RECOMMENDATION BANNER */
+  .ai-banner{
+    background:linear-gradient(90deg,#fff3e6,#fde7dd); border:1px dashed var(--terracotta);
+    padding:12px 16px; border-radius:10px; margin-bottom:20px; font-size:14px;
+  }
+  .ai-banner b{color:var(--terracotta);}
+
+  /* DASHBOARD */
+  .dash-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:24px;}
+  .kpi-card{background:white; border-radius:12px; padding:18px; box-shadow:0 2px 10px rgba(0,0,0,0.05);}
+  .kpi-card .num{font-size:26px; font-weight:bold; color:var(--terracotta);}
+  .kpi-card .label{font-size:12px; color:var(--gray); text-transform:uppercase; letter-spacing:.5px;}
+
+  table{width:100%; border-collapse:collapse; background:white; border-radius:12px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,0.05);}
+  th,td{padding:12px 14px; text-align:left; font-size:13px; border-bottom:1px solid #f0ebe4;}
+  th{background:var(--charcoal); color:white;}
+  .toggle-btn{
+    padding:6px 12px; border:none; border-radius:20px; cursor:pointer; font-size:12px; font-weight:bold;
+  }
+  .toggle-btn.on{background:#e3f2e5; color:var(--green);}
+  .toggle-btn.off{background:#fde3e0; color:#b3391c;}
+  .section-title{margin:28px 0 12px; font-size:17px;}
+  .toast{
+    position:fixed; top:20px; right:20px; background:var(--charcoal); color:white; padding:12px 18px;
+    border-radius:8px; font-size:13px; z-index:999; opacity:0; transition:opacity .3s;
+  }
+  .toast.show{opacity:1;}
+  .footer-note{text-align:center; color:var(--gray); font-size:12px; margin:40px 0 10px;}
+
+  .booking-panel{background:white; border-radius:12px; padding:18px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+  .booking-form{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;}
+  .booking-form input{flex:1; min-width:140px; padding:10px; border:1px solid #ddd; border-radius:8px;}
+  .booking-form button{padding:10px 18px; background:var(--green); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;}
+  #bookingConfirmed{margin-top:10px; font-size:13px; color:var(--green); font-weight:bold;}
+
+  .pay-options{display:flex; gap:8px; margin:10px 0;}
+  .pay-option{flex:1; padding:8px; text-align:center; border:1px solid #ddd; border-radius:8px; cursor:pointer; font-size:12px;}
+  .pay-option.selected{background:var(--charcoal); color:white; border-color:var(--charcoal);}
+
+  .status-tag{padding:3px 10px; border-radius:20px; font-size:11px; font-weight:bold;}
+  .status-tag.Placed{background:#fff3d6; color:#8a6d00;}
+  .status-tag.Accepted{background:#e3f2e5; color:var(--green);}
+  .status-tag.Preparing{background:#e0ecf9; color:#1c5ba8;}
+  .status-tag.Ready{background:#e3f2e5; color:var(--green);}
+  .status-tag.Rejected{background:#fde3e0; color:#b3391c;}
+  .order-actions button{padding:5px 10px; margin-right:4px; border:none; border-radius:6px; cursor:pointer; font-size:11px;}
+  .accept-btn{background:#4d7a56; color:white;}
+  .reject-btn{background:#b3391c; color:white;}
+  .advance-btn{background:#2b2320; color:white;}
+
+  .bookings-table-wrap{margin-top:28px;}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<!-- ================= LOGIN SCREEN ================= -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h2>🍽️ PlateWise</h2>
+    <p>Smart Restaurant Management System</p>
+    <input type="email" id="loginEmail" placeholder="Email" />
+    <input type="password" id="loginPassword" placeholder="Password" />
+    <button onclick="loginAsCustomer()">Login / Sign Up (Customer)</button>
+    <button style="background:#4d7a56; margin-top:8px;" onclick="loginAsGoogle()">Continue with Google</button>
+    <span class="staff-link" onclick="toggleStaffLogin()">Login as Restaurant Staff / Manager →</span>
+
+    <div id="staffLoginPanel" class="hidden" style="margin-top:12px; text-align:left;">
+      <input type="email" id="staffEmail" placeholder="Staff Email" />
+      <input type="password" id="staffPassword" placeholder="Staff Password" />
+      <button style="background:#2b2320; margin-top:8px;" onclick="loginAsStaff()">Staff Login</button>
+      <div id="staffLoginError" style="color:#b3392b; font-size:12px; margin-top:6px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= CUSTOMER VIEW ================= -->
+<div id="customerScreen" class="hidden">
+  <header>
+    <h1>🍽️ Plate<span>Wise</span></h1>
+    <div class="nav-btns">
+      <button onclick="showBooking()">📅 Book a Table</button>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </header>
+  <div class="container">
+    <div id="bookingPanel" class="booking-panel hidden">
+      <h3>📅 Book a Table</h3>
+      <div class="booking-form">
+        <input type="text" id="bookName" placeholder="Your Name" />
+        <input type="number" id="bookGuests" min="1" max="12" placeholder="No. of Guests" value="2" />
+        <input type="time" id="bookTime" />
+        <button onclick="confirmBooking()">Confirm Booking</button>
+      </div>
+      <div id="bookingConfirmed"></div>
+    </div>
+    <div class="ai-banner">
+      ⭐ <b>Recommended for you:</b> <span id="aiRecommendationText">Loading personalized picks...</span>
+    </div>
+    <div id="menuContainer"></div>
+  </div>
+  <div class="cart-panel">
+    <h3>🛒 Your Cart <span id="cartCount" style="font-size:12px; color:#8a8178;"></span></h3>
+    <div id="cartItems"></div>
+  </div>
+</div>
+
+<!-- ================= STAFF DASHBOARD ================= -->
+<div id="staffScreen" class="hidden">
+  <header>
+    <h1>🍽️ Plate<span>Wise</span> <span style="font-size:12px; font-weight:normal;">Staff Dashboard</span></h1>
+    <div class="nav-btns">
+      <button onclick="logout()">Logout</button>
+    </div>
+  </header>
+  <div class="container">
+    <div class="dash-grid">
+      <div class="kpi-card"><div class="num" id="kpiOrders">0</div><div class="label">Live Orders</div></div>
+      <div class="kpi-card"><div class="num" id="kpiRevenue">₹0</div><div class="label">Today's Revenue</div></div>
+      <div class="kpi-card"><div class="num" id="kpiTables">6</div><div class="label">Tables</div></div>
+      <div class="kpi-card"><div class="num" id="kpiSoldOut">0</div><div class="label">Items Sold Out</div></div>
+    </div>
+
+    <h3 class="section-title">➕ Add a New Dish</h3>
+    <div class="booking-form" style="margin-bottom:20px;">
+      <input type="text" id="newDishName" placeholder="Dish name" />
+      <input type="text" id="newDishCategory" placeholder="Category (e.g. Starters)" />
+      <input type="number" id="newDishPrice" placeholder="Price (₹)" min="0" />
+      <input type="text" id="newDishDesc" placeholder="Short description" />
+      <input type="text" id="newDishEmoji" placeholder="Emoji (optional, e.g. 🍛)" maxlength="4" />
+      <button onclick="addDish()">Add Dish to Menu</button>
+    </div>
+
+    <h3 class="section-title">📋 Menu & Availability (toggle updates customer app instantly)</h3>
+    <table id="inventoryTable">
+      <thead><tr><th>Dish</th><th>Price</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="inventoryBody"></tbody>
+    </table>
+
+    <h3 class="section-title">🧾 Live Orders</h3>
+    <table>
+      <thead><tr><th>Order ID</th><th>Items / Payment</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="ordersBody"><tr><td colspan="5" style="color:#8a8178;">No orders yet — place one from the customer view.</td></tr></tbody>
+    </table>
+
+    <div class="bookings-table-wrap">
+      <h3 class="section-title">📅 Table Bookings</h3>
+      <table>
+        <thead><tr><th>Booking ID</th><th>Name</th><th>Guests</th><th>Time</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="bookingsBody"><tr><td colspan="6" style="color:#8a8178;">No table bookings yet.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="footer-note">PlateWise — Serving smarter, one table at a time.</div>
+
+<script>
+// ================= DATA (in-memory, resets on refresh; persists via localStorage) =================
+const STORAGE_KEY = "platewise_data_v1";
+
+let menuItems = [
+  {id:1, category:"Starters", name:"Paneer Tikka", desc:"Char-grilled cottage cheese, mint chutney", price:180, available:true, emoji:"🧀"},
+  {id:2, category:"Starters", name:"Chicken 65", desc:"Spicy Tamil-style fried chicken", price:220, available:true, emoji:"🍗"},
+  {id:3, category:"Starters", name:"Veg Spring Rolls", desc:"Crispy rolls with sweet chili dip", price:150, available:true, emoji:"🥟"},
+  {id:4, category:"Main Course", name:"Butter Chicken", desc:"Creamy tomato curry, tandoori chicken", price:320, available:true, emoji:"🍛"},
+  {id:5, category:"Main Course", name:"Chettinad Chicken", desc:"Spicy Tamil Nadu style curry", price:300, available:true, emoji:"🌶️"},
+  {id:6, category:"Main Course", name:"Vegetable Biryani", desc:"Aromatic basmati rice, mixed veg", price:220, available:true, emoji:"🍚"},
+  {id:7, category:"Beverages", name:"Filter Coffee", desc:"South Indian classic", price:60, available:true, emoji:"☕"},
+  {id:8, category:"Beverages", name:"Fresh Lime Soda", desc:"Sweet or salted", price:70, available:true, emoji:"🥤"},
+  {id:9, category:"Desserts", name:"Gulab Jamun", desc:"Warm syrup-soaked dumplings", price:90, available:true, emoji:"🍮"}
+];
+
+let cart = [];
+let orders = [];
+let bookings = [];
+let orderCounter = 1000;
+let bookingCounter = 500;
+let selectedPayment = "Cash";
+
+function saveData(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({menuItems, orders, bookings, orderCounter, bookingCounter}));
+  }catch(e){ /* storage blocked in this environment - app still works in-memory */ }
+}
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      menuItems = parsed.menuItems || menuItems;
+      orders = parsed.orders || [];
+      bookings = parsed.bookings || [];
+      orderCounter = parsed.orderCounter || 1000;
+      bookingCounter = parsed.bookingCounter || 500;
+    }
+  }catch(e){ /* storage blocked in this environment - app still works in-memory */ }
+}
+loadData();
+
+// ================= TABLE BOOKING =================
+function showBooking(){
+  document.getElementById("bookingPanel").classList.toggle("hidden");
+}
+function confirmBooking(){
+  const name = document.getElementById("bookName").value.trim();
+  const guests = document.getElementById("bookGuests").value;
+  const time = document.getElementById("bookTime").value;
+  if(!name || !time){
+    showToast("Please enter your name and preferred time");
+    return;
+  }
+  const booking = {
+    id: "TBL-" + (bookingCounter++),
+    name, guests, time,
+    status: "Requested"
+  };
+  bookings.unshift(booking);
+  saveData();
+  document.getElementById("bookingConfirmed").textContent =
+    `✔ Booking request sent! Reference: ${booking.id}. The restaurant will confirm shortly.`;
+  showToast("Table booking requested!");
+}
+function updateBookingStatus(id, status){
+  const b = bookings.find(x=>x.id===id);
+  if(b){ b.status = status; saveData(); renderBookings(); showToast(`Booking ${id} ${status}`); }
+}
+
+// ================= AUTH / NAVIGATION =================
+function showScreen(id){
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("customerScreen").classList.add("hidden");
+  document.getElementById("staffScreen").classList.add("hidden");
+  document.getElementById(id).classList.remove("hidden");
+}
+function loginAsCustomer(){
+  showToast("Logged in as Customer ✔");
+  showScreen("customerScreen");
+  renderMenu();
+  renderCart();
+  showRecommendation();
+}
+function loginAsGoogle(){
+  showToast("Signed in with Google ✔");
+  showScreen("customerScreen");
+  renderMenu();
+  renderCart();
+  showRecommendation();
+}
+const STAFF_EMAIL = "staff.platewise@gmail.com";
+const STAFF_PASSWORD = "Staff@12345";
+
+function toggleStaffLogin(){
+  document.getElementById("staffLoginPanel").classList.toggle("hidden");
+}
+function loginAsStaff(){
+  const email = document.getElementById("staffEmail").value.trim();
+  const password = document.getElementById("staffPassword").value;
+  const errorBox = document.getElementById("staffLoginError");
+
+  if(email !== STAFF_EMAIL || password !== STAFF_PASSWORD){
+    errorBox.textContent = "Incorrect staff email or password.";
+    return;
+  }
+  errorBox.textContent = "";
+  showToast("Logged in as Staff/Manager ✔");
+  showScreen("staffScreen");
+  renderInventory();
+  renderOrders();
+  renderBookings();
+  updateKPIs();
+}
+function logout(){
+  cart = [];
+  showScreen("loginScreen");
+}
+
+// ================= TOAST =================
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 2200);
+}
+
+// ================= AI RECOMMENDATION (simple simulated logic) =================
+function showRecommendation(){
+  const available = menuItems.filter(i=>i.available);
+  const pick = available[Math.floor(Math.random()*available.length)];
+  const msgs = [
+    `Based on today's trends, "${pick?.name}" is popular right now — highly rated by recent customers.`,
+    `It's a great evening for "${pick?.name}" — one of our top sellers this week.`,
+    `Try our Chef's Pick: "${pick?.name}" — freshly prepared and in high demand today.`
+  ];
+  document.getElementById("aiRecommendationText").textContent = msgs[Math.floor(Math.random()*msgs.length)];
+}
+
+// ================= CUSTOMER MENU RENDER =================
+function renderMenu(){
+  const container = document.getElementById("menuContainer");
+  container.innerHTML = "";
+  const categories = [...new Set(menuItems.map(i=>i.category))];
+  categories.forEach(cat=>{
+    const title = document.createElement("div");
+    title.className = "category-title";
+    title.textContent = cat;
+    container.appendChild(title);
+
+    const grid = document.createElement("div");
+    grid.className = "menu-grid";
+    menuItems.filter(i=>i.category===cat).forEach(item=>{
+      const card = document.createElement("div");
+      card.className = "item-card" + (item.available ? "" : " sold-out");
+      card.innerHTML = `
+        <span class="badge ${item.available ? 'available' : 'soldout'}">${item.available ? 'Available' : 'Sold Out'}</span>
+        <div class="item-img">${item.emoji}</div>
+        <div class="item-name">${item.name}</div>
+        <div class="item-desc">${item.desc}</div>
+        <div class="item-price">₹${item.price}</div>
+        <button class="add-btn" ${item.available ? "" : "disabled"} onclick="addToCart(${item.id})">
+          ${item.available ? "Add to Cart" : "Unavailable"}
+        </button>
+      `;
+      grid.appendChild(card);
+    });
+    container.appendChild(grid);
+  });
+}
+
+// ================= CART =================
+function addToCart(id){
+  const item = menuItems.find(i=>i.id===id);
+  if(!item || !item.available) return;
+  const existing = cart.find(c=>c.id===id);
+  if(existing){ existing.qty++; } else { cart.push({...item, qty:1}); }
+  renderCart();
+  showToast(`${item.name} added to cart`);
+}
+function removeFromCart(id){
+  cart = cart.filter(c=>c.id!==id);
+  renderCart();
+}
+function renderCart(){
+  const container = document.getElementById("cartItems");
+  const countEl = document.getElementById("cartCount");
+  if(cart.length===0){
+    container.innerHTML = `<div class="empty-cart">Your cart is empty. Add some delicious items!</div>`;
+    countEl.textContent = "";
+    return;
+  }
+  countEl.textContent = `(${cart.reduce((a,c)=>a+c.qty,0)})`;
+  let total = 0;
+  const itemsHtml = cart.map(c=>{
+    total += c.price * c.qty;
+    return `<div class="cart-item">
+      <span>${c.name} x${c.qty}</span>
+      <span>₹${c.price*c.qty} <a href="#" onclick="removeFromCart(${c.id}); return false;" style="color:#c9603a; margin-left:6px;">✕</a></span>
+    </div>`;
+  }).join("");
+  const payHtml = `
+    <div style="font-size:12px; font-weight:bold; margin-top:10px;">Payment Method</div>
+    <div class="pay-options">
+      <div class="pay-option ${selectedPayment==='Cash'?'selected':''}" onclick="selectPayment('Cash')">💵 Cash</div>
+      <div class="pay-option ${selectedPayment==='UPI'?'selected':''}" onclick="selectPayment('UPI')">📱 UPI</div>
+      <div class="pay-option ${selectedPayment==='Card'?'selected':''}" onclick="selectPayment('Card')">💳 Card</div>
+    </div>`;
+  container.innerHTML = itemsHtml + `<div class="cart-total"><span>Total</span><span>₹${total}</span></div>
+  ${payHtml}
+  <button class="checkout-btn" onclick="checkout()">Place Order</button>`;
+}
+function selectPayment(method){
+  selectedPayment = method;
+  renderCart();
+}
+function checkout(){
+  if(cart.length===0) return;
+  const total = cart.reduce((a,c)=>a+c.price*c.qty,0);
+  const order = {
+    id: "ORD-" + (orderCounter++),
+    items: cart.map(c=>`${c.name} x${c.qty}`).join(", "),
+    total,
+    payment: selectedPayment,
+    status: "Placed"
+  };
+  orders.unshift(order);
+  cart = [];
+  saveData();
+  renderCart();
+  showToast(`Order placed (Pay by ${selectedPayment})! Kitchen has been notified. 🎉`);
+}
+
+// ================= STAFF DASHBOARD =================
+function renderInventory(){
+  const body = document.getElementById("inventoryBody");
+  body.innerHTML = menuItems.map(item=>`
+    <tr>
+      <td>${item.emoji} ${item.name}</td>
+      <td>₹${item.price}</td>
+      <td>${item.available ? "🟢 Available" : "🔴 Sold Out"}</td>
+      <td>
+        <button class="toggle-btn ${item.available ? 'on':'off'}" onclick="toggleAvailability(${item.id})">
+          ${item.available ? "Mark Sold Out" : "Mark Available"}
+        </button>
+        <button class="toggle-btn off" style="margin-left:6px;" onclick="deleteDish(${item.id})">Delete</button>
+      </td>
+    </tr>
+  `).join("");
+}
+function addDish(){
+  const name = document.getElementById("newDishName").value.trim();
+  const category = document.getElementById("newDishCategory").value.trim() || "Mains";
+  const price = Number(document.getElementById("newDishPrice").value);
+  const desc = document.getElementById("newDishDesc").value.trim();
+  const emoji = document.getElementById("newDishEmoji").value.trim() || "🍽️";
+
+  if(!name || !price || price <= 0){
+    showToast("Please enter a dish name and a valid price");
+    return;
+  }
+
+  const newId = menuItems.length ? Math.max(...menuItems.map(i=>i.id)) + 1 : 1;
+  menuItems.push({ id:newId, category, name, desc, price, available:true, emoji });
+  saveData();
+  renderInventory();
+  updateKPIs();
+
+  document.getElementById("newDishName").value = "";
+  document.getElementById("newDishCategory").value = "";
+  document.getElementById("newDishPrice").value = "";
+  document.getElementById("newDishDesc").value = "";
+  document.getElementById("newDishEmoji").value = "";
+
+  showToast(`${name} added to the menu ✔ — visible to customers instantly`);
+}
+function deleteDish(id){
+  const item = menuItems.find(i=>i.id===id);
+  if(!item) return;
+  if(!confirm(`Remove "${item.name}" from the menu?`)) return;
+  menuItems = menuItems.filter(i=>i.id!==id);
+  saveData();
+  renderInventory();
+  updateKPIs();
+  showToast(`${item.name} removed from the menu`);
+}
+function toggleAvailability(id){
+  const item = menuItems.find(i=>i.id===id);
+  item.available = !item.available;
+  saveData();
+  renderInventory();
+  updateKPIs();
+  showToast(`${item.name} is now ${item.available ? "Available ✔" : "Sold Out ✘"} — customer menu updated instantly`);
+}
+function renderOrders(){
+  const body = document.getElementById("ordersBody");
+  if(orders.length===0){
+    body.innerHTML = `<tr><td colspan="5" style="color:#8a8178;">No orders yet — place one from the customer view.</td></tr>`;
+    return;
+  }
+  body.innerHTML = orders.map(o=>{
+    let actions = "";
+    if(o.status === "Placed"){
+      actions = `<button class="accept-btn" onclick="setOrderStatus('${o.id}','Accepted')">Accept</button>
+                  <button class="reject-btn" onclick="setOrderStatus('${o.id}','Rejected')">Reject</button>`;
+    } else if(o.status === "Accepted"){
+      actions = `<button class="advance-btn" onclick="setOrderStatus('${o.id}','Preparing')">Start Preparing</button>`;
+    } else if(o.status === "Preparing"){
+      actions = `<button class="advance-btn" onclick="setOrderStatus('${o.id}','Ready')">Mark Ready</button>`;
+    } else {
+      actions = `<span style="color:#8a8178; font-size:11px;">—</span>`;
+    }
+    return `<tr>
+      <td>${o.id}</td><td>${o.items}<br><span style="color:#8a8178; font-size:11px;">Payment: ${o.payment||'N/A'}</span></td>
+      <td>₹${o.total}</td>
+      <td><span class="status-tag ${o.status}">${o.status}</span></td>
+      <td class="order-actions">${actions}</td>
+    </tr>`;
+  }).join("");
+}
+function setOrderStatus(id, status){
+  const o = orders.find(x=>x.id===id);
+  if(o){
+    o.status = status;
+    saveData();
+    renderOrders();
+    updateKPIs();
+    showToast(`Order ${id} → ${status}` + (status==="Rejected" ? " (customer will be notified)" : ""));
+  }
+}
+function renderBookings(){
+  const el = document.getElementById("bookingsBody");
+  if(!el) return;
+  if(bookings.length===0){
+    el.innerHTML = `<tr><td colspan="5" style="color:#8a8178;">No table bookings yet.</td></tr>`;
+    return;
+  }
+  el.innerHTML = bookings.map(b=>{
+    let actions = "";
+    if(b.status === "Requested"){
+      actions = `<button class="accept-btn" onclick="updateBookingStatus('${b.id}','Confirmed')">Confirm</button>
+                 <button class="reject-btn" onclick="updateBookingStatus('${b.id}','Declined')">Decline</button>`;
+    } else {
+      actions = `<span style="color:#8a8178; font-size:11px;">—</span>`;
+    }
+    return `<tr>
+      <td>${b.id}</td><td>${b.name}</td><td>${b.guests}</td><td>${b.time}</td>
+      <td><span class="status-tag ${b.status==='Confirmed'?'Accepted':(b.status==='Declined'?'Rejected':'Placed')}">${b.status}</span></td>
+      <td class="order-actions">${actions}</td>
+    </tr>`;
+  }).join("");
+}
+function updateKPIs(){
+  document.getElementById("kpiOrders").textContent = orders.length;
+  document.getElementById("kpiRevenue").textContent = "₹" + orders.reduce((a,o)=>a+o.total,0);
+  document.getElementById("kpiSoldOut").textContent = menuItems.filter(i=>!i.available).length;
+}
+
+// Auto-refresh staff/customer views every 2s so "live sync" feels real across two browser tabs/windows
+setInterval(()=>{
+  loadData();
+  if(!document.getElementById("customerScreen").classList.contains("hidden")){
+    renderMenu();
+  }
+  if(!document.getElementById("staffScreen").classList.contains("hidden")){
+    renderInventory();
+    renderOrders();
+    renderBookings();
+    updateKPIs();
+  }
+}, 2000);
+</script>
+</body>
+</html>
