@@ -59,6 +59,12 @@ Claude (Anthropic), GitHub Copilot, and Google Antigravity were used as coding a
 
 ---
 
+##Staff login credentials 
+Email ID: staff.platewise@gmail.com 
+password: Staff@12345
+
+---
+
 ## Key Features
 - 🍽️ Digital menu with live "Sold Out" / "Available" sync between staff and customer views
 - 👨‍🍳 Staff can add or remove dishes directly from the dashboard, visible to customers instantly
